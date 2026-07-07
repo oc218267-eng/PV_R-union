@@ -1,0 +1,62 @@
+name: pv_reunion
+description: "A new Flutter project."
+# The following line prevents the package from being accidentally published to
+# pub.dev using `flutter pub publish`. This is preferred for private packages.
+publish_to: 'none' 
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.12.2
+
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  cupertino_icons: ^1.0.8
+
+  # Persistance locale
+  sqflite: ^2.3.0
+  path: ^1.8.3
+  shared_preferences: ^2.2.2
+
+  # Reconnaissance vocale
+  speech_to_text: ^7.0.0
+  permission_handler: ^11.3.1
+
+  # Dates
+  intl: ^0.20.2
+  sqflite_common_ffi_web: ^1.1.2
+
+  
+  
+ 
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+  
+  flutter_lints: ^6.0.0
+  flutter_native_splash: ^2.4.8
+
+
+flutter:
+
+  
+  uses-material-design: true
+  assets:
+    - assets/splash/splash_logo.png
+
+
+flutter_native_splash:
+  color: "#ECE9E2"
+  image: assets/splash/splash_logo.png
+
+  android: true
+  ios: true
+  web: true
+
+  android_12:
+    color: "#ECE9E2"
+    image: assets/splash/splash_logo.png
