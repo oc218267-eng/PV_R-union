@@ -1,14 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:speech_to_text/speech_recognition_error.dart';
 import 'package:speech_to_text/speech_to_text.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class WidgetAudio extends StatefulWidget {
   final TextEditingController controller;
 
-  const WidgetAudio({
-    super.key,
-    required this.controller,
-  });
+  const WidgetAudio({super.key, required this.controller});
 
   @override
   State<WidgetAudio> createState() => _WidgetAudioState();
@@ -24,15 +22,29 @@ class _WidgetAudioState extends State<WidgetAudio> {
   String? _localeId;
 
   Future<void> _initialiser() async {
-    final disponible = await _speech.initialize(
-      onStatus: _onStatus,
-      onError: _onError,
-    );
+   final disponible = await _speech.initialize(
+  onStatus: (status) {
+    debugPrint("STATUS : $status");
+    _onStatus(status);
+  },
+  onError: (error) {
+    debugPrint("ERREUR : ${error.errorMsg}");
+    _onError(error);
+  },
+);
+
+debugPrint("Disponible = $disponible");
 
     if (!mounted) return;
 
     if (disponible) {
       final locales = await _speech.locales();
+
+debugPrint("Nombre de langues : ${locales.length}");
+
+for (final locale in locales) {
+  debugPrint("${locale.localeId} ---> ${locale.name}");
+}
       final localeFr = locales.where((locale) {
         return locale.localeId.toLowerCase().startsWith('fr');
       }).toList();
@@ -49,6 +61,15 @@ class _WidgetAudioState extends State<WidgetAudio> {
   }
 
   Future<void> _demarrer() async {
+ var permission = await Permission.microphone.request();
+
+  if (!permission.isGranted) {
+    setState(() {
+      _statut = "Permission microphone refusée";
+    });
+    return;
+  }
+
     if (!_disponible) {
       await _initialiser();
     }
@@ -64,31 +85,17 @@ class _WidgetAudioState extends State<WidgetAudio> {
       _ecoute = true;
       _statut = 'Écoute en cours...';
     });
+await _speech.listen(
+  onResult: (result) {
+    final texteReconnu = result.recognizedWords.trim();
+    final nouveauTexte = '$_texteAvantEcoute$texteReconnu'.trim();
 
-    await _speech.listen(
-      onResult: (result) {
-        final texteReconnu = result.recognizedWords.trim();
-        final nouveauTexte = '$_texteAvantEcoute$texteReconnu'.trim();
-
-        widget.controller.text = nouveauTexte;
-        widget.controller.selection = TextSelection.fromPosition(
-          TextPosition(offset: widget.controller.text.length),
-        );
-
-        if (result.finalResult) {
-          _texteAvantEcoute = '${widget.controller.text.trim()} ';
-        }
-      },
-      listenOptions: SpeechListenOptions(
-        partialResults: true,
-        cancelOnError: false,
-        listenMode: ListenMode.dictation,
-      ).copyWith(
-        localeId: _localeId,
-        listenFor: const Duration(minutes: 5),
-        pauseFor: const Duration(seconds: 5),
-      ),
+    widget.controller.text = nouveauTexte;
+    widget.controller.selection = TextSelection.fromPosition(
+      TextPosition(offset: widget.controller.text.length),
     );
+  },
+);
   }
 
   Future<void> _arreter() async {
@@ -150,10 +157,7 @@ class _WidgetAudioState extends State<WidgetAudio> {
               ],
             ),
             const SizedBox(height: 8),
-            Text(
-              _statut,
-              style: Theme.of(context).textTheme.bodySmall,
-            ),
+            Text(_statut, style: Theme.of(context).textTheme.bodySmall),
           ],
         ),
       ),
